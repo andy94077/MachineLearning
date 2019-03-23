@@ -1,2 +1,2 @@
-# MachineLearningTechniques
-Machine Learning Techniques, Spring 2019, National Taiwan University
+# MachineLearning - Prof. Hsuan-Tian Lin
+This is the repo that I store my Machine Learning homework.
