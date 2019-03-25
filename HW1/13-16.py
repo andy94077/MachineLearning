@@ -31,7 +31,6 @@ def problem13(X,y):
 		clf = SVC(C=c,kernel='linear')
 		clf.fit(X,y_bin) 
 		#print(clf.coef_)
-		print(1.0-clf.score(X,y_bin))
 		w_list.append(np.linalg.norm(clf.coef_))
 
 	print(w_list)
@@ -42,7 +41,6 @@ def problem13(X,y):
 def problem14(X,y):
 	print('problem 14')
 	ein_list = []
-	w_list = []
 	Z = np.concatenate((np.ones((X.shape[0], 1)), np.sqrt(2) * X, X ** 2), axis=1)
 	y_bin=(y == 4.0) * 2 - 1 #turn True,False into 1,-1
 	for c in [1e-5,1e-3,1e-1,1e1,1e3]:
@@ -51,10 +49,8 @@ def problem14(X,y):
 		clf.fit(X, y_bin)
 		
 		ein_list.append(1.0- clf.score(X, y_bin))
-		w_list.append(np.linalg.norm(np.sum(clf.dual_coef_.T*Z[clf.support_],axis=0)))
 
 	print(ein_list)
-	print(w_list)
 	plt.plot([-5, -3, -1, 1, 3], ein_list)
 	draw(xlabel='log C',ylabel='Ein')
 
@@ -109,15 +105,12 @@ def problem16(X,y):
 	from multiprocessing import Pool
 	y_bin = (y == 0.0) * 2 - 1
 	data = np.concatenate((X, y_bin.reshape(-1, 1)), axis = 1)
-	process_n=25
+	process_n=10
 	assert 100%process_n==0
 	poo=Pool(process_n)
 
 	argument_list=[(data.copy(),process_n) for _ in range(process_n)]
-	total = poo.map(get_hist, argument_list)
-	print('\n',total,sep='')
-	total=sum(total)
-	print('\n',total,sep='')
+	total = sum(poo.map(get_hist, argument_list))
 	plt.bar(list(range(-2,3)),total)
 	draw(xlabel='log gamma')
 
