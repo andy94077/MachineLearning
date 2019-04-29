@@ -1,13 +1,26 @@
-from utility import *
 import numpy as np
+def read_data(filename):
+	'''@return: (matrix, matrix). X, Y'''
+	data = np.loadtxt(filename)
+	data = np.concatenate((np.ones((data.shape[0], 1)), data), axis=1)
+	return np.matrix(data[:,:-1]), np.matrix(data[:, -1:])
+
+def get_w(X, Y, lam):
+	'''@return: matrix w'''
+	return (X.T * X + lam * np.identity(X.shape[1])).I * X.T * Y
+
 def split_data_set(X, Y,train_n):
 	'''@return: (matrix,matrix,matrix,matrix). trainX,trainY,testX,testY'''
 	return X[:train_n,:], Y[:train_n,:], X[train_n:,:], Y[train_n:,:]
 
 def bagging(trainX, trainY):
 	np.random.seed()
-	sample = np.random.choice(trainX.shape[0],size=trainX.shape[0])
+	sample = np.random.choice(trainX.shape[0], size=trainX.shape[0])
 	return trainX[sample], trainY[sample]
+
+def err_rate(X, Y, w):
+	'''@return: float'''
+	return np.float((sum(np.sign(X * w) != Y) / X.shape[0]))
 
 def err_rate_bagging(X, Y, W):
 	'''@return: float
