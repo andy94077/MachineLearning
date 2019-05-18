@@ -3,8 +3,10 @@ import numpy as np
 
 class DecisionTree():
 	def __init__(self):
+		self.fitted = False
 		self.b = (0,0,0) #(s,i,theta)
-		self.left = self.right = None
+		self.left = -1
+		self.right = 1
 	
 	def __str__(self):
 		string = ''
@@ -13,8 +15,8 @@ class DecisionTree():
 			item = preorder.pop()
 			if isinstance(item, DecisionTree):
 				string += '(%d, %d, %.3f)\n' % item.b
-				preorder.append(item.right if item.right is not None else 1)
-				preorder.append(item.left if item.right is not None else -1)
+				preorder.append(item.right)
+				preorder.append(item.left)
 			else:
 				string += str(item) + '\n'
 		return string
@@ -54,4 +56,21 @@ class DecisionTree():
 			result = self.g_func(self.b, X)
 			self.left = DecisionTree().fit(X[result == -1], Y[result == -1])
 			self.right = DecisionTree().fit(X[result == 1], Y[result == 1])
+		self.fitted = True
 		return self
+
+	def predict(self, X):
+		if not self.fitted:
+			raise 'Not fitted yet'
+		else:
+			result = []
+			for x in X:
+				node = self
+				while isinstance(node,DecisionTree):
+					node = node.left if node.g_func(self.b, x.reshape(1, -1)) == -1 else node.right
+				result.append(node)
+			return np.array(result)
+	
+	def score(self, X, Y):
+		return np.mean(self.predict(X) != Y)
+		
