@@ -4,7 +4,7 @@ import numpy as np
 class DecisionTree():
 	def __init__(self):
 		self.fitted = False
-		self.b = (0,0) #(i,theta)
+		self.b = (0,0) #(i,theta,majority y(if base condition is meeted))
 		self.left = -1
 		self.right = 1
 		self.height = 1
@@ -25,7 +25,8 @@ class DecisionTree():
 	def g_func(self, X, b=None):
 		if b is None:
 			b = self.b
-		return np.sign(X[:, b[0]] - b[1]).astype(int).ravel()
+		#plus 1e-7 to prevent np.sum(Y) = 0, which will cause np.sign() = 0
+		return np.sign(X[:, b[0]] - b[1] + 1e-7).astype(int).ravel()
 	
 	def __err_gini(self, b, X, Y):
 		result = self.g_func(X,b)
@@ -34,9 +35,9 @@ class DecisionTree():
 	
 	def __find_b(self, X, Y):
 		if np.all(Y == Y[0]):
-			return (int(Y[0]), -np.inf),True  #use i to return majority y
+			return (0, -np.inf, Y[0]), True  #return majority y
 		elif np.all(X == X[0]):  #all X are the same
-			return (int(np.sign(np.sum(Y) + 0.1)), -np.inf),True  #use i to return majority y
+			return (0, -np.inf, int(np.sign(np.sum(Y) + 0.1))), True  #return majority y
 		else:
 			min_err = np.inf
 			min_err_b = (0, -np.inf)
@@ -59,8 +60,8 @@ class DecisionTree():
 		
 		if h == 1:
 			#plus 0.1 to prevent np.sum(Y) = 0, which will cause np.sign() = 0
-			self.b = (0, -np.inf)
-			self.left = self.right = int(np.sign(np.sum(Y) + 0.1))
+			self.b = (0, -np.inf, int(np.sign(np.sum(Y) + 0.1)))
+			self.left, self.right = -self.b[2], self.b[2]
 			self.fitted = True
 			return self
 
@@ -75,10 +76,10 @@ class DecisionTree():
 				result = self.g_func(X)
 				self.left = DecisionTree().fit(X[result == -1], Y[result == -1],h-1)
 				if self.left.b[1] == -np.inf:
-					self.left = self.left.b[0]
+					self.left = self.left.b[2]
 				self.right = DecisionTree().fit(X[result == 1], Y[result == 1],h-1)
 				if self.right.b[1] == -np.inf:
-					self.right = self.right.b[0]
+					self.right = self.right.b[2]
 			self.fitted = True
 		else:
 			result = self.g_func(X)
@@ -89,7 +90,7 @@ class DecisionTree():
 			else:
 				self.left = DecisionTree().fit(X[result == -1], Y[result == -1],h-1)
 				if self.left.b[1] == -np.inf:
-					self.left = self.left.b[0]
+					self.left = self.left.b[2]
 			
 			#keep fitting
 			if isinstance(self.right, DecisionTree):
@@ -97,7 +98,7 @@ class DecisionTree():
 			else:
 				self.right = DecisionTree().fit(X[result == 1], Y[result == 1],h-1)
 				if self.right.b[1] == -np.inf:
-					self.right = self.right.b[0]
+					self.right = self.right.b[2]
 		
 		self.height = 1 + max(self.left.height if isinstance(self.left,DecisionTree) else 1, self.right.height if isinstance(self.right,DecisionTree) else 1)
 		return self
