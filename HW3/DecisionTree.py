@@ -1,4 +1,3 @@
-from queue import Queue
 import numpy as np
 
 class DecisionTree():
@@ -56,7 +55,6 @@ class DecisionTree():
 				self.majority_y = int(np.sign(np.sum(Y) + 0.1))
 			return min_err_b, min_err_b[1] == -np.inf # if min_err_b[1]==-np.inf, it means 'b' cannot split X into 2 partition
 							
-
 	def fit(self, X, Y, h=-1):
 		'''@parameters:
 			X, Y: data

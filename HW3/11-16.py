@@ -24,11 +24,9 @@ def draw(title=None, xlabel=None, ylabel=None, has_legend=False,savefig=False):
 		plt.savefig(savefig)
 	plt.close()
 
-
 def problem13(clf,trainX, trainY, testX, testY):
 	Ein, Eout = [], []
 	pruned = DecisionTree()
-
 	for h in range(1, clf.height):
 		pruned = pruned.fit(trainX,trainY,h)
 		Ein.append(pruned.score(trainX, trainY))
@@ -85,7 +83,7 @@ if __name__ == "__main__":
 	print('Ein =', clf.score(trainX, trainY))
 	print('Eout =', clf.score(testX, testY))
 
-	#problem13(clf, trainX, trainY, testX, testY)
+	problem13(clf, trainX, trainY, testX, testY)
 	
 	T=30000
 	trees, predictions, Ein, out_predictions = random_forest(T, trainX, trainY, testX)
