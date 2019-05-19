@@ -7,6 +7,7 @@ class DecisionTree():
 		self.b = (0,0,0) #(s,i,theta)
 		self.left = -1
 		self.right = 1
+		self.height = 1
 	
 	def __str__(self):
 		string = ''
@@ -29,7 +30,7 @@ class DecisionTree():
 	def __err_gini(self, b, X, Y):
 		result = self.g_func(X,b)
 		D = [Y[result == -1], Y[result == 1]]
-		return sum([(Dc.shape[0] - (np.sum(Dc==-1)**2+np.sum(Dc==1)**2)/Dc.shape[0]) for Dc in D if Dc.shape[0]!=0])
+		return 2 * sum([np.sum(Dc == 1) * (1 - np.mean(Dc == 1)) for Dc in D if Dc.shape[0] != 0])
 	
 	def __find_b(self, X, Y):
 		if np.all(Y == Y[0]):
@@ -51,23 +52,59 @@ class DecisionTree():
 			return min_err_b, min_err_b[2] == -np.inf # if min_err_b[2]==-np.inf, it means 'b' cannot split X into 2 partition
 							
 
-	def fit(self, X, Y):
-		self.b, end = self.__find_b(X, Y)
-		#print(self.b)
-		if not end:
+	def fit(self, X, Y, h=-1):
+		'''@parameters:
+			X, Y: data
+			h: maximum height (the number of ancesters of the deepest node + 1), if h == -1, no constraint
+		@return: self '''
+		
+		if h == 1:
+			#plus 0.1 to prevent np.sum(Y) = 0, which will cause np.sign() = 0
+			self.b = (int(np.sign(np.sum(Y) + 0.1)), 0, -np.inf)
+			self.fitted = True
+			return self
+
+		#since self.b does not classify anything, we turn self.fitted into False in order to fit X later
+		if self.b[2]==-np.inf:
+			self.fitted = False
+
+		if not self.fitted:
+			self.b, end = self.__find_b(X, Y)
+			#print(self.b)
+			if not end:
+				result = self.g_func(X)
+				self.left = DecisionTree().fit(X[result == -1], Y[result == -1],h-1)
+				if self.left.b[2] == -np.inf:
+					self.left = self.left.b[0]
+				self.right = DecisionTree().fit(X[result == 1], Y[result == 1],h-1)
+				if self.right.b[2] == -np.inf:
+					self.right = self.right.b[0]
+			self.fitted = True
+		else:
 			result = self.g_func(X)
-			self.left = DecisionTree().fit(X[result == -1], Y[result == -1])
-			if self.left.b[2] == -np.inf:
-				self.left = self.left.b[0]
-			self.right = DecisionTree().fit(X[result == 1], Y[result == 1])
-			if self.right.b[2] == -np.inf:
-				self.right = self.right.b[0]
-		self.fitted = True
+			
+			#keep fitting
+			if isinstance(self.left, DecisionTree):
+				self.left.fit(X[result == -1], Y[result == -1],h-1)
+			else:
+				self.left = DecisionTree().fit(X[result == -1], Y[result == -1],h-1)
+				if self.left.b[2] == -np.inf:
+					self.left = self.left.b[0]
+			
+			#keep fitting
+			if isinstance(self.right, DecisionTree):
+				self.right.fit(X[result == 1], Y[result == 1],h-1)
+			else:
+				self.right = DecisionTree().fit(X[result == 1], Y[result == 1],h-1)
+				if self.right.b[2] == -np.inf:
+					self.right = self.right.b[0]
+		
+		self.height = 1 + max(self.left.height if isinstance(self.left,DecisionTree) else 1, self.right.height if isinstance(self.right,DecisionTree) else 1)
 		return self
 
 	def predict(self, X):
 		if not self.fitted:
-			raise 'Not fitted yet'
+			raise NotImplementedError('Not fitted yet')
 		else:
 			result = []
 			for x in X:
