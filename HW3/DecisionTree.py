@@ -4,7 +4,7 @@ import numpy as np
 class DecisionTree():
 	def __init__(self):
 		self.fitted = False
-		self.b = (0,0,0) #(s,i,theta)
+		self.b = (0,0) #(i,theta)
 		self.left = -1
 		self.right = 1
 		self.height = 1
@@ -15,7 +15,7 @@ class DecisionTree():
 		while preorder:
 			item = preorder.pop()
 			if isinstance(item, DecisionTree):
-				string += '(%d, %d, %.3f)\n' % item.b
+				string += '(%d, %.3f)\n' % item.b
 				preorder.append(item.right)
 				preorder.append(item.left)
 			else:
@@ -25,7 +25,7 @@ class DecisionTree():
 	def g_func(self, X, b=None):
 		if b is None:
 			b = self.b
-		return (b[0] * np.sign(X[:, b[1]] - b[2])).astype(int).ravel()
+		return np.sign(X[:, b[0]] - b[1]).astype(int).ravel()
 	
 	def __err_gini(self, b, X, Y):
 		result = self.g_func(X,b)
@@ -34,22 +34,21 @@ class DecisionTree():
 	
 	def __find_b(self, X, Y):
 		if np.all(Y == Y[0]):
-			return (int(Y[0]), 0, -np.inf),True  #i does not matter
+			return (int(Y[0]), -np.inf),True  #use i to return majority y
 		elif np.all(X == X[0]):  #all X are the same
-			return (int(Y[0]), 0, -np.inf),True  #return garbage
+			return (int(np.sign(np.sum(Y) + 0.1)), -np.inf),True  #use i to return majority y
 		else:
 			min_err = np.inf
-			min_err_b = (int(Y[0]), 0, -np.inf)
+			min_err_b = (0, -np.inf)
 			for i in range(X.shape[1]):
 				Xi = np.sort(X[:, i])
 				thetas = np.concatenate(([-np.inf], (Xi[:-1] + Xi[1:]) / 2))
-				for s in [-1, 1]:
-					for theta in thetas:
-						err = self.__err_gini((s, i, theta), X, Y)
-						if err < min_err:
-							min_err = err
-							min_err_b = (s, i, theta)
-			return min_err_b, min_err_b[2] == -np.inf # if min_err_b[2]==-np.inf, it means 'b' cannot split X into 2 partition
+				for theta in thetas:
+					err = self.__err_gini((i, theta), X, Y)
+					if err < min_err:
+						min_err = err
+						min_err_b = (i, theta)
+			return min_err_b, min_err_b[1] == -np.inf # if min_err_b[1]==-np.inf, it means 'b' cannot split X into 2 partition
 							
 
 	def fit(self, X, Y, h=-1):
@@ -60,12 +59,13 @@ class DecisionTree():
 		
 		if h == 1:
 			#plus 0.1 to prevent np.sum(Y) = 0, which will cause np.sign() = 0
-			self.b = (int(np.sign(np.sum(Y) + 0.1)), 0, -np.inf)
+			self.b = (0, -np.inf)
+			self.left = self.right = int(np.sign(np.sum(Y) + 0.1))
 			self.fitted = True
 			return self
 
 		#since self.b does not classify anything, we turn self.fitted into False in order to fit X later
-		if self.b[2]==-np.inf:
+		if self.b[1]==-np.inf:
 			self.fitted = False
 
 		if not self.fitted:
@@ -74,10 +74,10 @@ class DecisionTree():
 			if not end:
 				result = self.g_func(X)
 				self.left = DecisionTree().fit(X[result == -1], Y[result == -1],h-1)
-				if self.left.b[2] == -np.inf:
+				if self.left.b[1] == -np.inf:
 					self.left = self.left.b[0]
 				self.right = DecisionTree().fit(X[result == 1], Y[result == 1],h-1)
-				if self.right.b[2] == -np.inf:
+				if self.right.b[1] == -np.inf:
 					self.right = self.right.b[0]
 			self.fitted = True
 		else:
@@ -88,7 +88,7 @@ class DecisionTree():
 				self.left.fit(X[result == -1], Y[result == -1],h-1)
 			else:
 				self.left = DecisionTree().fit(X[result == -1], Y[result == -1],h-1)
-				if self.left.b[2] == -np.inf:
+				if self.left.b[1] == -np.inf:
 					self.left = self.left.b[0]
 			
 			#keep fitting
@@ -96,7 +96,7 @@ class DecisionTree():
 				self.right.fit(X[result == 1], Y[result == 1],h-1)
 			else:
 				self.right = DecisionTree().fit(X[result == 1], Y[result == 1],h-1)
-				if self.right.b[2] == -np.inf:
+				if self.right.b[1] == -np.inf:
 					self.right = self.right.b[0]
 		
 		self.height = 1 + max(self.left.height if isinstance(self.left,DecisionTree) else 1, self.right.height if isinstance(self.right,DecisionTree) else 1)
