@@ -33,9 +33,9 @@ def problem13(clf,trainX, trainY, testX, testY):
 		Eout.append(pruned.score(testX, testY))
 	
 	plt.plot(range(1,clf.height+1),Ein+[clf.score(trainX,trainY)])
-	draw(title='$E_{in}(g_h)\;v.s.\;h$',xlabel='h',ylabel='$E_{in}$',savefig='13ein.jpg')
+	draw(title='problem 13 $E_{in}(g_h)$',xlabel='h',ylabel='$E_{in}(g_h)$',savefig='13ein.jpg')
 	plt.plot(range(1,clf.height+1),Eout+[clf.score(testX,testY)])
-	draw(title='$E_{out}(g_h)\;v.s.\;h$',xlabel='h',ylabel='$E_{out}$',savefig='13eout.jpg')
+	draw(title='problem 13 $E_{out}(g_h)$',xlabel='h',ylabel='$E_{out}(g_h)$',savefig='13eout.jpg')
 
 def bagging(X, Y, rate):
 	np.random.seed()
@@ -90,15 +90,15 @@ if __name__ == "__main__":
 
 	#problem 14
 	plt.hist(Ein)
-	draw(title='$E_{in}(g_t)$',savefig='14.jpg')
+	draw(title='problem 14',savefig='14.jpg')
 
 	#problem 15
 	EinG = np.mean(np.sign(np.cumsum(predictions, axis=0)) != trainY, axis=1)
 	plt.plot(range(1,T+1), EinG)
-	draw(title='$E_{in}(G_t)$',savefig='15.jpg')
+	draw(title='problem 15',xlabel='t',ylabel='$E_{in}(G_t)$',savefig='15.jpg')
 	
 	#problem 16
 	EoutG = np.mean(np.sign(np.cumsum(out_predictions, axis=0)) != testY, axis=1)
 	plt.plot(range(1,T+1), EoutG)
-	draw(title='$E_{out}(G_t)$',savefig='16.jpg')
+	draw(title='problem 16',xlabel='t',ylabel='$E_{out}(G_t)$',savefig='16.jpg')
 	
