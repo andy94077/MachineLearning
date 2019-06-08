@@ -31,7 +31,7 @@ def err_rate(predicted, Y):
 if __name__ == "__main__":
 	trainX, trainY = read_data('hw4_train.dat')
 	testX, testY = read_data('hw4_test.dat')
-
+	
 	#problem 11
 	ein_gknbor = [err_rate(gknbor(trainX, trainX, trainY, k), trainY) for k in range(1, 11, 2)]
 	plt.plot(range(1, 11, 2), ein_gknbor, '-o')
@@ -44,13 +44,15 @@ if __name__ == "__main__":
 
 	#problem 13
 	ein_guni = [err_rate(guni(trainX, trainX, trainY, gamma), trainY) for gamma in [1e-3,0.1,1,10,100]]
+	print(ein_guni)
 	plt.plot([1e-3,0.1,1,10,100], ein_guni, '-o')
-	draw(title='Problem 13', xlabel='k', ylabel='$E_{in}(g_{uniform})$')
+	draw(title='Problem 13', xlabel='$\gamma$', ylabel='$E_{in}(g_{uniform})$')
 
 	#problem 14
 	eout_guni = [err_rate(guni(testX, trainX, trainY, gamma), testY) for gamma in [1e-3,0.1,1,10,100]]
+	print(eout_guni)
 	plt.plot([1e-3,0.1,1,10,100], eout_guni, '-o')
-	draw(title='Problem 14', xlabel='k', ylabel='$E_{out}(g_{uniform})$')
+	draw(title='Problem 14', xlabel='$\gamma$', ylabel='$E_{out}(g_{uniform})$')
 
 
 	
